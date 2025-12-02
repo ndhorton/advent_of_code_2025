@@ -45,16 +45,49 @@
 # We could simply say that if the starting point of the rotation is 0 and the sum is
 # between -1 and -99, then we advance to the next rotation without adjusting the
 # accumulator. This is not that satisfying though.
-# Aaaand it doesn't even work.
+# And it doesn't even work.
 #
 # The brute force solution did actually work instantly, so a more mathematically
-# clever solution isn't really needed. I would like to know though...
+# clever solution isn't really needed. I would like to know though.
+#
+# Rotation right essentially works as expected, we just add the clicks to
+# the starting number and divide by 100.
+#
+# Leftward rotation is a different problem, because the dial can only start
+# on a non-negative number. And if it starts on a positive number, then
+# this gives a different answer to if it starts on zero. And again, if it starts
+# on a positive number n, and the rotation is Ln, then we get a different answer.
+# And the other problem is that if the left rotation ends on the zero, then the
+# answer is different again.
+# So I'm not sure there's a way to use the same simple approach at all.
+#
+# So if it ends on a zero, we need to increment acc by an extra 1.
+# And if we start on a zero, we need to decrement acc by 1.
 #
 # DS:
 #
 # A:
 
-# The dial
+# The dial with brute force iterative calculation of zeroes crossed on a rotation.
+# class Dial
+#   attr_reader :number
+#
+#   def initialize
+#     @number = 50
+#   end
+#
+#   def turn!(direction, clicks)
+#     neg_adj = (direction == 'L' ? -1 : 1)
+#     acc = 0
+#     clicks.times do |_|
+#       @number = (@number + neg_adj) % 100
+#       acc += 1 if @number.zero?
+#     end
+#     acc
+#   end
+# end
+
+# The dial with a basic arithmetical calculation of zeroes.
 class Dial
   attr_reader :number
 
@@ -63,13 +96,16 @@ class Dial
   end
 
   def turn!(direction, clicks)
-    neg_adj = (direction == 'L' ? -1 : 1)
-    acc = 0
-    clicks.times do |_|
-      @number = (@number + neg_adj) % 100
-      acc += 1 if @number.zero?
+    clicks = -clicks if direction == 'L'
+    starting_point = @number
+    @number = (@number + clicks) % 100
+    if direction == 'R'
+      (starting_point + clicks) / 100
+    elsif direction == 'L'
+      offset = (starting_point.zero? ? -1 : 0)
+      offset += 1 if @number.zero?
+      offset + ((starting_point + clicks) / 100).abs
     end
-    acc
   end
 end
 
