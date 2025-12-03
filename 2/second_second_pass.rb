@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# Procedural generation solution
-
 # Parse CSV file
 class Parser
   def self.read(file)
@@ -42,15 +40,16 @@ class InvalidIDGenerator
     end
 
     def invalid_ids_from_length_range(length_range)
-      chunk_size_set = get_chunk_sizes(length_range)
-      chunk_infos = get_chunk_infos(chunk_size_set, length_range)
+      chunk_sizes = get_chunk_sizes(length_range)
+      chunk_infos = get_chunk_infos(chunk_sizes, length_range)
       chunk_infos.each_with_object(Set.new) do |chunk_info, set|
         set.merge invalid_ids_from_chunk_info(chunk_info)
       end
     end
 
     def invalid_ids_from_chunk_info(chunk_info)
-      (chunk_info.lowest..chunk_info.highest).each_with_object(Set.new) do |current_chunk, set|
+      chunk_range = (chunk_info.lowest..chunk_info.highest)
+      chunk_range.each_with_object(Set.new) do |current_chunk, set|
         if invalid_id?(current_chunk, chunk_info)
           invalid_id = (current_chunk.to_s * chunk_info.repeats).to_i
           set.add invalid_id
@@ -110,7 +109,7 @@ class InvalidIDGenerator
 end
 
 t = Time.now
-puts "Answer: #{InvalidIDGenerator.sum_invalid_ids('input.txt') == 21_932_258_645}"
+puts "Answer: #{InvalidIDGenerator.sum_invalid_ids('input.txt')}"
 puts "Time: #{Time.now - t}"
 
 # Answer: 21932258645
