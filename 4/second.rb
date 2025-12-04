@@ -74,18 +74,25 @@ class RollFinder
   TOO_MANY_ROLLS = 4
 
   def initialize(grid)
-    @grid = grid.freeze
+    @grid = grid
   end
 
   def count_free_rolls
     result = 0
-    @grid.each_index do |row|
-      @grid[row].each_index do |column|
-        next unless @grid[row][column] == '@' &&
-                    count_neighbouring_rolls(row, column) < TOO_MANY_ROLLS
+    loop do
+      acc = 0
+      @grid.each_index do |row|
+        @grid[row].each_index do |column|
+          next unless @grid[row][column] == '@' &&
+                      count_neighbouring_rolls(row, column) < TOO_MANY_ROLLS
 
-        result += 1
+          acc += 1
+          @grid[row][column] = 'x'
+        end
       end
+      break if acc.zero?
+
+      result += acc
     end
     result
   end
@@ -123,7 +130,7 @@ test_input = <<~HEREDOC
 HEREDOC
 test_input = test_input.split.map(&:chars).freeze
 
-puts RollFinder.new(test_input).count_free_rolls == 13
-puts RollFinder.new(Parser.read('input.txt')).count_free_rolls == 1449
+# puts RollFinder.new(test_input).count_free_rolls
+puts RollFinder.new(Parser.read('input.txt')).count_free_rolls
 
 # Answer: 1449
