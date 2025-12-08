@@ -29,7 +29,9 @@
 
 class TachyonManifold
   def initialize(text)
-    @starting_grid = generate_grid(text).freeze.map { |row| row.map(&:freeze).freeze }
+    @starting_grid = generate_grid(text).freeze.map do |row|
+      row.map(&:freeze).freeze
+    end
     @memo = {}
     @working_grid = nil
     @timelines = nil
