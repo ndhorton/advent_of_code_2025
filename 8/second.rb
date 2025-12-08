@@ -41,20 +41,35 @@
 #
 # A:
 
-def distance_between(a, b)
-  a_vec = a.split(',').map(&:to_i)
-  b_vec = b.split(',').map(&:to_i)
+def reverse_sorted_distances_between_boxes(boxes)
+  distances = []
+  boxes.combination(2) do |a, b|
+    distances << { distance: distance_between_boxes(a, b), boxes: [a, b] }
+  end
+  distances.sort { |a, b| b[:distance] <=> a[:distance] }
+end
+
+def distance_between_boxes(box1, box2)
+  box1_vec = box1.split(',').map(&:to_i)
+  box2_vec = box2.split(',').map(&:to_i)
+
   Math.sqrt(
-    ((a_vec[0] - b_vec[0])**2) +
-    ((a_vec[1] - b_vec[1])**2) +
-    ((a_vec[2] - b_vec[2])**2)
+    ((box1_vec[0] - box2_vec[0])**2) +
+    ((box1_vec[1] - box2_vec[1])**2) +
+    ((box1_vec[2] - box2_vec[2])**2)
   )
 end
 
-def vector_strings_from_text(text)
-  text.split("\n").map do |line|
-    line.chomp
-  end
+def junction_box_strings_from_file(filename)
+  # rubocop:disable Style/ExpandPathArguments
+  path = File.expand_path('..', __FILE__)
+  # rubocop:enable Style/ExpandPathArguments
+  file_path = File.join(path, filename)
+  junction_box_strings_from_text(File.read(file_path))
+end
+
+def junction_box_strings_from_text(text)
+  text.split("\n").map(&:chomp)
 end
 
 test_input = <<~HEREDOC
@@ -82,60 +97,27 @@ HEREDOC
 
 t = Time.now
 
-# rubocop:disable Style/ExpandPathArguments
-path = File.expand_path('..', __FILE__)
-# rubocop:enable Style/ExpandPathArguments
-file_path = File.join(path, 'input.txt')
-input = File.read(file_path)
+input_file = 'input.txt'
+boxes = junction_box_strings_from_file(input_file)
 
-boxes = vector_strings_from_text(input)
-distances = []
+distances = reverse_sorted_distances_between_boxes(boxes)
+circuits = boxes.map { |box| [box] }
 
-boxes.combination(2) do |a, b|
-  distances << { distance: distance_between(a, b), boxes: [a, b] }
-end
-distances.sort! { |a, b| b[:distance] <=> a[:distance] }
-
-circuits = [distances.pop[:boxes]]
-boxes.delete(circuits.first[0])
-boxes.delete(circuits.first[1])
-
-last_two = nil
-
-until boxes.empty?
+until distances.empty?
   a, b = distances.pop[:boxes]
-
-  if circuits.none? { |circuit| circuit.include?(a) || circuit.include?(b) }
-    circuits << [a, b]
-    boxes.delete(a)
-    boxes.delete(b)
-    last_two = [a, b] if boxes.empty?
-    next
-  end
 
   circuit_with_a = circuits.find { |circuit| circuit.include?(a) }
   circuit_with_b = circuits.find { |circuit| circuit.include?(b) }
   next if !circuit_with_a.nil? && (circuit_with_a == circuit_with_b)
 
-  if circuit_with_a && circuit_with_b && (circuit_with_a != circuit_with_b)
-    circuit_with_a.concat(circuit_with_b)
-    circuits.delete(circuit_with_b)
+  next unless !circuit_with_a.nil? && !circuit_with_b.nil? &&
+              (circuit_with_a != circuit_with_b)
 
-    next
-  end
-
-  circuits.each do |circuit|
-    if circuit.include?(a) && !circuit.include?(b)
-      circuit << b
-      boxes.delete(b)
-      last_two = [a, b] if boxes.empty?
-      break
-    elsif circuit.include?(b) && !circuit.include?(a)
-      circuit << a
-      boxes.delete(a)
-      last_two = [a, b] if boxes.empty?
-      break
-    end
+  circuit_with_a.concat(circuit_with_b)
+  circuits.delete(circuit_with_b)
+  if circuits.size == 1
+    last_two = [a, b]
+    break
   end
 end
 
