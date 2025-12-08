@@ -23,6 +23,18 @@
 #   If none of the existing circuits contain either of the boxes referred to by the
 #   current distance, we create a new circuit list containing these two boxes
 #
+# Ok, I realize now that 'circuits' in the problem text includes boxes
+# that have not been connected at all. Since all the connected boxes
+# have been merged into one single circuit by the time the last two boxes
+# are added into the circuits array, the point where the boxes array is empty
+# is the point where all the boxes are connected in a single circuit.
+#
+# Perhaps it would make more sense to write
+# `last_two = [a, b] if boxes.empty? && circuits.size == 1`
+# but the second condition was unnecessary in both test input and real input.
+#
+# Easily the most opaque problem specification I've encountered in AoC.
+#
 # Etc:
 #
 # DS:
@@ -78,14 +90,11 @@ input = File.read(file_path)
 
 boxes = vector_strings_from_text(input)
 distances = []
+
 boxes.combination(2) do |a, b|
   distances << { distance: distance_between(a, b), boxes: [a, b] }
 end
 distances.sort! { |a, b| b[:distance] <=> a[:distance] }
-
-# File.open('debug_output.txt', 'w') do |file|
-#   distances.each { |distance| file.puts distance[:boxes].inspect }
-# end
 
 circuits = [distances.pop[:boxes]]
 boxes.delete(circuits.first[0])
@@ -103,8 +112,7 @@ until boxes.empty?
     last_two = [a, b] if boxes.empty?
     next
   end
-  # if one circuit contains `a` and one contains `b`, then you
-  # have to merge those circuits
+
   circuit_with_a = circuits.find { |circuit| circuit.include?(a) }
   circuit_with_b = circuits.find { |circuit| circuit.include?(b) }
   next if !circuit_with_a.nil? && (circuit_with_a == circuit_with_b)
@@ -130,9 +138,10 @@ until boxes.empty?
     end
   end
 end
-p last_two
-last_two.map! { |num_string| num_string.split(',').first.to_i }
-answer = last_two.reduce(:*)
+
+last_two_x = last_two.map { |num_string| num_string.split(',').first.to_i }
+answer = last_two_x.reduce(:*)
+
 puts "Answer: #{answer}"
 puts "Time: #{Time.now - t}"
 
