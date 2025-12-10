@@ -89,6 +89,10 @@ areas = []
 areas << rectangle_area(top_left, bottom_right)
 areas << rectangle_area(bottom_left, top_right)
 
+areas = []
+areas << rectangle_area(top_left, bottom_right)
+areas << rectangle_area(bottom_left, top_right)
+
 answer = areas.max
 
 puts "Answer: #{answer}"
