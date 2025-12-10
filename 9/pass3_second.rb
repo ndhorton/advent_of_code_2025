@@ -149,9 +149,11 @@ end
 
 def construct_line(tile1, tile2)
   if tile1.x == tile2.x
-    start_and_stop_y(tile1, tile2).map { |y| OrderedPair.new(tile1.x, y) }
+    min_y, max_y = [tile1.y, tile2.y].minmax
+    (min_y..max_y).map { |y| OrderedPair.new(tile1.x, y) }
   else
-    start_and_stop_y(tile1, tile2).map { |x| OrderedPair.new(x, tile1.y) }
+    min_x, max_x = [tile1.x, tile2.x].minmax
+    (min_x..max_x).map { |x| OrderedPair.new(x, tile1.y) }
   end
 end
 
@@ -166,7 +168,7 @@ end
 def valid_rectangle?(corner1, corner2, red_tiles)
   bad_x_range = start_and_stop_x(corner1, corner2)
   bad_y_range = start_and_stop_y(corner1, corner2)
-  false unless valid_area?(red_tiles, bad_x_range, bad_y_range)
+  return false unless valid_area?(red_tiles, bad_x_range, bad_y_range)
 
   valid_lines?(corner1, red_tiles, bad_x_range, bad_y_range) &&
     valid_lines?(corner2, red_tiles, bad_x_range, bad_y_range)
