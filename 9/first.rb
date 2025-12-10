@@ -24,12 +24,30 @@
 #   that computes this, given two ordered pairs. And we need a class/struct/hash
 #   that represents an ordered pair.
 #
+#  Another approach might be to find the red tile with the lowest x value with the
+#  lowest y value (so we could simply look for the min value of x + y) and the
+#  tile with the lowest x value that has the highest y value (not sure how to look
+#  for that). Then we find the tile with the highest x + y, then the tile with the
+#  highest x value and the lowest y value (not sure how to look for that).
+#
+#  So
+#  lowest x, lowest y -- top-left
+#  lowest x, highest y -- bottom-left
+#  highest x, lowest y -- top-right
+#  highest x, highest y -- bottom-right
+#
+#  and they pair (top-left, bottom-right), (bottom-right, top-left)
+#
+#  lowest x, lowest y == lowest (x + y)
+#  highest x, highest y == highest (x + y)
+#  lowest x, highest y == find maximum (y - x)
+#  highest x, lowest y == find maximum (x - y)
+#
 # DS:
 #
 # A:
 
 OrderedPair = Struct.new('OrderedPair', :x, :y)
-AreaData = Struct.new('AreaData', :area, :pair)
 
 def extract_pairs_from_file(filename)
   # rubocop:disable Style/ExpandPathArguments
@@ -62,11 +80,18 @@ t = Time.now
 
 pairs = extract_pairs_from_file('input.txt')
 
-area_infos = pairs.combination(2).map do |pair1, pair2|
-  AreaData.new(rectangle_area(pair1, pair2), [pair1, pair2])
-end
+top_left = pairs.min_by { |pair| pair.x + pair.y }
+bottom_right = pairs.max_by { |pair| pair.x + pair.y }
+top_right = pairs.max_by { |pair| pair.x - pair.y }
+bottom_left = pairs.max_by { |pair| pair.y - pair.x }
 
-largest_area_info = area_infos.max_by { |area| area[:area] }
+p [[top_left, bottom_right], [bottom_left, top_right]]
 
-puts "Answer: #{largest_area_info.area}"
+areas = []
+areas << rectangle_area(top_left, bottom_right)
+areas << rectangle_area(bottom_left, top_right)
+
+answer = areas.max
+
+puts "Answer: #{answer}"
 puts "Time: #{Time.now - t}"
